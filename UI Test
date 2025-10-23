@@ -1,0 +1,290 @@
+-- Roblox: UO-Style Scrollable Menu (Fixed Minimize + Hover Effects)
+
+local TweenService = game:GetService("TweenService")
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "MainMenuGUI"
+
+---------------------------------------------------
+-- 🔘 TOGGLE BUTTON (Top-right, higher)
+---------------------------------------------------
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 120, 0, 40)
+toggleBtn.Position = UDim2.new(1, -10, 0, 5)
+toggleBtn.AnchorPoint = Vector2.new(1, 0)
+toggleBtn.Text = "Open Menu"
+toggleBtn.Font = Enum.Font.SourceSansBold
+toggleBtn.TextSize = 20
+toggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+toggleBtn.BackgroundTransparency = 0.15
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 12)
+toggleCorner.Parent = toggleBtn
+
+---------------------------------------------------
+-- 🔵 MAIN MENU FRAME
+---------------------------------------------------
+local menu = Instance.new("Frame")
+menu.Size = UDim2.new(0, 260, 0, 350)
+menu.Position = UDim2.new(0.35, 0, 0.3, 0)
+menu.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+menu.BackgroundTransparency = 0.15
+menu.BorderSizePixel = 0
+menu.Visible = false
+menu.Parent = screenGui
+
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(0, 12)
+menuCorner.Parent = menu
+
+---------------------------------------------------
+-- 🔵 TITLE BAR
+---------------------------------------------------
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = menu
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -60, 1, 0)
+titleText.Text = "Main Menu"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.Font = Enum.Font.SourceSansBold
+titleText.TextSize = 20
+titleText.BackgroundTransparency = 1
+titleText.Parent = titleBar
+
+---------------------------------------------------
+-- 🔘 Minimize & Close Buttons
+---------------------------------------------------
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 30, 1, 0)
+minimizeBtn.Position = UDim2.new(1, -60, 0, 0)
+minimizeBtn.Text = "–"
+minimizeBtn.Font = Enum.Font.SourceSansBold
+minimizeBtn.TextSize = 24
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+minimizeBtn.BackgroundTransparency = 0.15
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Parent = titleBar
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 1, 0)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 22
+closeBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 50)
+closeBtn.BackgroundTransparency = 0.15
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Parent = titleBar
+
+for _, btn in ipairs({minimizeBtn, closeBtn}) do
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = btn
+end
+
+---------------------------------------------------
+-- 🔍 SEARCH BAR
+---------------------------------------------------
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(1, -40, 0, 28)
+searchBox.Position = UDim2.new(0, 20, 0, 40)
+searchBox.PlaceholderText = "Search..."
+searchBox.Font = Enum.Font.SourceSans
+searchBox.TextSize = 18
+searchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+searchBox.BackgroundTransparency = 0.2
+searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBox.ClearTextOnFocus = false
+searchBox.BorderSizePixel = 0
+searchBox.Parent = menu
+
+local searchCorner = Instance.new("UICorner")
+searchCorner.CornerRadius = UDim.new(0, 8)
+searchCorner.Parent = searchBox
+
+---------------------------------------------------
+-- 🖱️ DRAGGING THE MENU
+---------------------------------------------------
+local dragging = false
+local dragStart, startPos
+
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = menu.Position
+	end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+		local delta = input.Position - dragStart
+		menu.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+titleBar.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+---------------------------------------------------
+-- 🧾 SCROLLING CONTAINER FOR BUTTONS
+---------------------------------------------------
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -20, 1, -80)
+scrollFrame.Position = UDim2.new(0, 10, 0, 80)
+scrollFrame.BackgroundTransparency = 0.2
+scrollFrame.ScrollBarThickness = 8
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.Parent = menu
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 8)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = scrollFrame
+
+---------------------------------------------------
+-- 🟢 CREATE MULTIPLE BUTTONS
+---------------------------------------------------
+local buttonNames = {"Play", "Settings", "Quit", "Credits", "Help", "Stats", "Profile", "Store", "Leaderboard", "About"}
+local buttonColors = {Color3.fromRGB(50,150,255), Color3.fromRGB(80,220,80), Color3.fromRGB(255,80,80),
+	Color3.fromRGB(255,180,60), Color3.fromRGB(170,80,255), Color3.fromRGB(80,180,255),
+	Color3.fromRGB(255,120,180), Color3.fromRGB(100,255,200), Color3.fromRGB(255,255,80),
+	Color3.fromRGB(160,160,255)}
+
+local buttons = {}
+
+for i, name in ipairs(buttonNames) do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -20, 0, 40)
+	btn.BackgroundColor3 = buttonColors[i]
+	btn.BackgroundTransparency = 0.15
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 22
+	btn.Text = name
+	btn.Parent = scrollFrame
+	table.insert(buttons, btn)
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 8)
+	btnCorner.Parent = btn
+
+	-- Hover effect
+	btn.MouseEnter:Connect(function()
+		btn.BackgroundTransparency = 0
+	end)
+	btn.MouseLeave:Connect(function()
+		btn.BackgroundTransparency = 0.15
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		print(name .. " clicked!")
+	end)
+end
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+end)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+
+---------------------------------------------------
+-- 🔎 SEARCH FUNCTIONALITY
+---------------------------------------------------
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+	local query = string.lower(searchBox.Text)
+	local visibleButtons = {}
+
+	for _, btn in ipairs(buttons) do
+		if query == "" or string.find(string.lower(btn.Text), query) then
+			btn.Visible = true
+			table.insert(visibleButtons, btn)
+		else
+			btn.Visible = false
+		end
+	end
+
+	for i, btn in ipairs(visibleButtons) do
+		btn.LayoutOrder = i
+	end
+end)
+
+---------------------------------------------------
+-- ⚡ FAST ANIMATION HELPERS
+---------------------------------------------------
+local TWEEN_DURATION = 0.2 -- faster animations
+
+local function tweenMenu(targetHeight)
+	local tweenInfo = TweenInfo.new(TWEEN_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local tween = TweenService:Create(menu, tweenInfo, {Size = UDim2.new(0, 260, 0, targetHeight)})
+	tween:Play()
+end
+
+local function tweenTransparency(targetTransparency)
+	local tweenInfo = TweenInfo.new(TWEEN_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local tween = TweenService:Create(menu, tweenInfo, {BackgroundTransparency = targetTransparency})
+	tween:Play()
+end
+
+---------------------------------------------------
+-- ⬇️ MINIMIZE / CLOSE / TOGGLE LOGIC (Fixed)
+---------------------------------------------------
+local minimized = false
+local uiVisible = false
+local toggleUI
+
+minimizeBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		-- Hide content, keep menu frame visible
+		scrollFrame.Visible = false
+		searchBox.Visible = false
+		minimizeBtn.Text = "+"
+		tweenMenu(30)
+	else
+		scrollFrame.Visible = true
+		searchBox.Visible = true
+		minimizeBtn.Text = "–"
+		tweenMenu(350)
+	end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	if uiVisible then
+		toggleUI()
+	end
+end)
+
+toggleUI = function()
+	uiVisible = not uiVisible
+	if uiVisible then
+		menu.Visible = true
+		menu.BackgroundTransparency = 0.15
+		tweenTransparency(0.15)
+		toggleBtn.Text = "Hide Menu"
+	else
+		menu.Visible = false
+		toggleBtn.Text = "Open Menu"
+	end
+end
+
+toggleBtn.MouseButton1Click:Connect(toggleUI)
