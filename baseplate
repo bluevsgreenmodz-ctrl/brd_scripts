@@ -146,5 +146,3 @@ spawn(function()
     wait(1)
     unfreezeAvatar()
 end)
-
-print("Infinite Baseplates enabled.")
