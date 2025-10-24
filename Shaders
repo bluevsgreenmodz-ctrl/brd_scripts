@@ -1,92 +1,90 @@
-    local Light = game:GetService("Lighting")
+-- GUI-less Lighting Toggle
+local Light = game:GetService("Lighting")
 
-    -- Static storage using upvalues
-    if not _G.OriginalLighting then
-        _G.OriginalLighting = {
-            Brightness = Light.Brightness,
-            ExposureCompensation = Light.ExposureCompensation,
-            ClockTime = Light.ClockTime,
-            ShadowSoftness = Light.ShadowSoftness
-        }
-    end
-
-    if not _G.LightingEffects then
-        _G.LightingEffects = {}
-    end
-
-    if _G.ShadersEnabled == nil then
-        _G.ShadersEnabled = false
-    end
-
-    local function applyCustomLighting()
-        -- Clear previous effects
-        for _, effect in pairs(_G.LightingEffects) do
-            if effect and effect.Parent then
-                effect:Destroy()
-            end
-        end
-        _G.LightingEffects = {}
-
-        -- Create effects
-        local Sky = Instance.new("Sky")
-        local Bloom = Instance.new("BloomEffect")
-        local ColorC = Instance.new("ColorCorrectionEffect")
-        local SunRays = Instance.new("SunRaysEffect")
-
-        Light.Brightness = 1.3
-        Light.ExposureCompensation = 0
-        Light.ClockTime = 17
-        Light.ShadowSoftness = 0.7
-
-        Sky.SkyboxBk = "http://www.roblox.com/asset/?id=144933338"
-        Sky.SkyboxDn = "http://www.roblox.com/asset/?id=144931530"
-        Sky.SkyboxFt = "http://www.roblox.com/asset/?id=144933262"
-        Sky.SkyboxLf = "http://www.roblox.com/asset/?id=144933244"
-        Sky.SkyboxRt = "http://www.roblox.com/asset/?id=144933299"
-        Sky.SkyboxUp = "http://www.roblox.com/asset/?id=144931564"
-        Sky.StarCount = 5000
-        Sky.SunAngularSize = 10
-        Sky.Parent = Light
-
-        Bloom.Intensity = 1
-        Bloom.Size = 3
-        Bloom.Threshold = 0.7
-        Bloom.Parent = Light
-
-        ColorC.Brightness = 0.03
-        ColorC.Contrast = 0.07
-        ColorC.Saturation = 0.2
-        ColorC.TintColor = Color3.fromRGB(255, 255, 255)
-        ColorC.Parent = Light
-
-        SunRays.Intensity = 0.1
-        SunRays.Spread = 1.3
-        SunRays.Parent = Light
-
-        _G.LightingEffects = {Sky, Bloom, ColorC, SunRays}
-    end
-
-    local function clearCustomLighting()
-        for _, effect in pairs(_G.LightingEffects) do
-            if effect and effect.Parent then
-                effect:Destroy()
-            end
-        end
-        _G.LightingEffects = {}
-
-        -- Restore original lighting
-        Light.Brightness = _G.OriginalLighting.Brightness
-        Light.ExposureCompensation = _G.OriginalLighting.ExposureCompensation
-        Light.ClockTime = _G.OriginalLighting.ClockTime
-        Light.ShadowSoftness = _G.OriginalLighting.ShadowSoftness
-    end
-
-    -- Toggle shaders
-    if _G.ShadersEnabled then
-        clearCustomLighting()
-        _G.ShadersEnabled = false
-    else
-        applyCustomLighting()
-        _G.ShadersEnabled = true
-    end
+-- State variable (stored in memory)
+if _G.isLightingEnabled == nil then
+    _G.isLightingEnabled = false
+    _G.originalLightingSettings = {
+        Brightness = Light.Brightness,
+        ExposureCompensation = Light.ExposureCompensation,
+        ClockTime = Light.ClockTime,
+        ShadowSoftness = Light.ShadowSoftness
+    }
 end
+
+-- Store lighting effects references
+if _G.lightingEffects == nil then
+    _G.lightingEffects = {}
+end
+
+-- Apply custom lighting
+local function applyCustomLighting()
+    -- Clear previous effects if any
+    for _, effect in pairs(_G.lightingEffects) do
+        if effect and effect.Parent then
+            effect:Destroy()
+        end
+    end
+    _G.lightingEffects = {}
+
+    local Sky = Instance.new("Sky")
+    local Bloom = Instance.new("BloomEffect")
+    local ColorC = Instance.new("ColorCorrectionEffect")
+    local SunRays = Instance.new("SunRaysEffect")
+
+    Light.Brightness = 1.3
+    Light.ExposureCompensation = 0
+    Light.ClockTime = 17
+    Light.ShadowSoftness = 0.7
+
+    Sky.SkyboxBk = "http://www.roblox.com/asset/?id=144933338"
+    Sky.SkyboxDn = "http://www.roblox.com/asset/?id=144931530"
+    Sky.SkyboxFt = "http://www.roblox.com/asset/?id=144933262"
+    Sky.SkyboxLf = "http://www.roblox.com/asset/?id=144933244"
+    Sky.SkyboxRt = "http://www.roblox.com/asset/?id=144933299"
+    Sky.SkyboxUp = "http://www.roblox.com/asset/?id=144931564"
+    Sky.StarCount = 5000
+    Sky.SunAngularSize = 10
+    Sky.Parent = Light
+
+    Bloom.Intensity = 1
+    Bloom.Size = 3
+    Bloom.Threshold = 0.7
+    Bloom.Parent = Light
+
+    ColorC.Brightness = 0.03
+    ColorC.Contrast = 0.07
+    ColorC.Saturation = 0.2
+    ColorC.TintColor = Color3.fromRGB(255, 255, 255)
+    ColorC.Parent = Light
+
+    SunRays.Intensity = 0.1
+    SunRays.Spread = 1.3
+    SunRays.Parent = Light
+
+    _G.lightingEffects = {Sky, Bloom, ColorC, SunRays}
+end
+
+-- Clear custom lighting
+local function clearCustomLighting()
+    for _, effect in pairs(_G.lightingEffects) do
+        if effect and effect.Parent then
+            effect:Destroy()
+        end
+    end
+    _G.lightingEffects = {}
+
+    Light.Brightness = _G.originalLightingSettings.Brightness
+    Light.ExposureCompensation = _G.originalLightingSettings.ExposureCompensation
+    Light.ClockTime = _G.originalLightingSettings.ClockTime
+    Light.ShadowSoftness = _G.originalLightingSettings.ShadowSoftness
+end
+
+-- Toggle
+if not _G.isLightingEnabled then
+    applyCustomLighting()
+else
+    clearCustomLighting()
+end
+
+_G.isLightingEnabled = not _G.isLightingEnabled
