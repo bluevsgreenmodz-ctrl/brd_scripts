@@ -134,16 +134,10 @@ end)
 
 -- Button labels, descriptions, and functions
 local buttonLabels = {
-	"Infinite Yield","Shaders","Give Coins","Toggle Fly Mode","Open Shop",
-	"Equip Tool","Heal Player","Toggle Speed","Send Message","Show Stats",
-	"Unlock Skill","Toggle Lights","Spawn NPC","Save Game","Load Game"
+	"Infinite Yield","Shaders"
 }
 local buttonDescriptions = {
-	"Executes Infinite Yield Script","Executes Shader Script","Gives your character coins",
-	"Toggles flying mode","Opens the in-game shop interface","Equips the selected tool or weapon",
-	"Heals your character to full health","Toggles character speed boost","Sends a message to chat",
-	"Displays your character stats","Unlocks a special skill","Toggles in-game lights",
-	"Spawns an NPC at your location","Saves your current game progress","Loads a previously saved game"
+	"Executes Infinite Yield Script","Executes Shader Script"
 }
 local buttonFunctions = {
 	function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
@@ -239,20 +233,7 @@ function()
         applyCustomLighting()
         _G.ShadersEnabled = true
     end
-end,
-	function() print("Give Coins executed") end,
-	function() print("Toggle Fly Mode executed") end,
-	function() print("Open Shop executed") end,
-	function() print("Equip Tool executed") end,
-	function() print("Heal Player executed") end,
-	function() print("Toggle Speed executed") end,
-	function() print("Send Message executed") end,
-	function() print("Show Stats executed") end,
-	function() print("Unlock Skill executed") end,
-	function() print("Toggle Lights executed") end,
-	function() print("Spawn NPC executed") end,
-	function() print("Save Game executed") end,
-	function() print("Load Game executed") end
+end
 }
 
 -- Tooltip (follows mouse, smoothly animates size)
@@ -299,7 +280,7 @@ end
 
 -- Create buttons
 local buttons = {}
-for i = 1, 15 do
+for i = 1, 2 do
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 28)
 	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
