@@ -91,7 +91,7 @@ local titleBar = Instance.new("TextLabel")
 titleBar.Size = UDim2.new(1, 0, 0, 28)
 titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
 titleBar.BackgroundTransparency = 0.25
-titleBar.Text = "My Roblox UI"
+titleBar.Text = "BRD SCRIPTS"
 titleBar.TextColor3 = Color3.new(1, 1, 1)
 titleBar.TextSize = 16
 titleBar.Font = Enum.Font.GothamBold
@@ -134,106 +134,15 @@ end)
 
 -- Button labels, descriptions, and functions
 local buttonLabels = {
-	"Infinite Yield","Shaders"
+	"Infinite Yield","Shaders", "Baseplate"
 }
 local buttonDescriptions = {
-	"Executes Infinite Yield Script","Executes Shader Script"
+	"Executes Infinite Yield Script","Shader Toggle", "Extended Baseplae Toggle"
 }
 local buttonFunctions = {
 	function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
-function()
-    local Light = game:GetService("Lighting")
-
-    -- Static storage using upvalues
-    if not _G.OriginalLighting then
-        _G.OriginalLighting = {
-            Brightness = Light.Brightness,
-            ExposureCompensation = Light.ExposureCompensation,
-            ClockTime = Light.ClockTime,
-            ShadowSoftness = Light.ShadowSoftness
-        }
-    end
-
-    if not _G.LightingEffects then
-        _G.LightingEffects = {}
-    end
-
-    if _G.ShadersEnabled == nil then
-        _G.ShadersEnabled = false
-    end
-
-    local function applyCustomLighting()
-        -- Clear previous effects
-        for _, effect in pairs(_G.LightingEffects) do
-            if effect and effect.Parent then
-                effect:Destroy()
-            end
-        end
-        _G.LightingEffects = {}
-
-        -- Create effects
-        local Sky = Instance.new("Sky")
-        local Bloom = Instance.new("BloomEffect")
-        local ColorC = Instance.new("ColorCorrectionEffect")
-        local SunRays = Instance.new("SunRaysEffect")
-
-        Light.Brightness = 1.3
-        Light.ExposureCompensation = 0
-        Light.ClockTime = 17
-        Light.ShadowSoftness = 0.7
-
-        Sky.SkyboxBk = "http://www.roblox.com/asset/?id=144933338"
-        Sky.SkyboxDn = "http://www.roblox.com/asset/?id=144931530"
-        Sky.SkyboxFt = "http://www.roblox.com/asset/?id=144933262"
-        Sky.SkyboxLf = "http://www.roblox.com/asset/?id=144933244"
-        Sky.SkyboxRt = "http://www.roblox.com/asset/?id=144933299"
-        Sky.SkyboxUp = "http://www.roblox.com/asset/?id=144931564"
-        Sky.StarCount = 5000
-        Sky.SunAngularSize = 10
-        Sky.Parent = Light
-
-        Bloom.Intensity = 1
-        Bloom.Size = 3
-        Bloom.Threshold = 0.7
-        Bloom.Parent = Light
-
-        ColorC.Brightness = 0.03
-        ColorC.Contrast = 0.07
-        ColorC.Saturation = 0.2
-        ColorC.TintColor = Color3.fromRGB(255, 255, 255)
-        ColorC.Parent = Light
-
-        SunRays.Intensity = 0.1
-        SunRays.Spread = 1.3
-        SunRays.Parent = Light
-
-        _G.LightingEffects = {Sky, Bloom, ColorC, SunRays}
-    end
-
-    local function clearCustomLighting()
-        for _, effect in pairs(_G.LightingEffects) do
-            if effect and effect.Parent then
-                effect:Destroy()
-            end
-        end
-        _G.LightingEffects = {}
-
-        -- Restore original lighting
-        Light.Brightness = _G.OriginalLighting.Brightness
-        Light.ExposureCompensation = _G.OriginalLighting.ExposureCompensation
-        Light.ClockTime = _G.OriginalLighting.ClockTime
-        Light.ShadowSoftness = _G.OriginalLighting.ShadowSoftness
-    end
-
-    -- Toggle shaders
-    if _G.ShadersEnabled then
-        clearCustomLighting()
-        _G.ShadersEnabled = false
-    else
-        applyCustomLighting()
-        _G.ShadersEnabled = true
-    end
-end
+    function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/Shaders"))() end,
+    function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/baseplate"))() end
 }
 
 -- Tooltip (follows mouse, smoothly animates size)
@@ -280,7 +189,7 @@ end
 
 -- Create buttons
 local buttons = {}
-for i = 1, 2 do
+for i = 1, 3 do
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 28)
 	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
