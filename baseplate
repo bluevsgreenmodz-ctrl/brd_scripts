@@ -23,7 +23,6 @@ if _G.InfiniteBaseplatesActive then
         end
     end
 
-    print("Infinite Baseplates disabled.")
     return
 end
 
