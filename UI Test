@@ -134,16 +134,35 @@ end)
 
 -- Button labels, descriptions, and functions
 local buttonLabels = {
-	"Infinite Yield","Shaders", "Baseplate"
+	"Infinite Yield","Shaders", "Baseplate", "Superman Fly", "Face Bang"
 }
 local buttonDescriptions = {
-	"Executes Infinite Yield Script","Shader Toggle", "Extended Baseplae Toggle"
+	"Executes Infinite Yield Script","Shader Toggle", "Extended Baseplae Toggle", "Executes Superman Fly Script", "Executes Face Bang Script"
 }
 local buttonFunctions = {
 	function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
     function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/Shaders"))() end,
-    function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/baseplate"))() end
+    function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/baseplate"))() end,
+	function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/supermanfly"))() end,
+	function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/facebang"))() end
 }
+
+local prefix = "!"
+local chatcmd = "to"
+game.Players.LocalPlayer.Chatted:Connect(function(msg)
+	local lowerCmd = msg:lower()
+	if lowerCmd:sub(1, #prefix + #chatcmd) == prefix .. chatcmd then
+		local targetPlayer = lowerCmd:sub(#prefix + #chatcmd + 2)
+		for i, v in pairs(game.Players:GetChildren()) do
+			local playerName = v.Name:lower()
+			local playerDisplayName = v.DisplayName:lower()
+			if playerName:find(targetPlayer) or playerDisplayName:find(targetPlayer) then
+				game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame
+				break 
+			end
+		end
+	end
+end)
 
 -- Tooltip (follows mouse, smoothly animates size)
 local tooltip = Instance.new("TextLabel")
@@ -189,7 +208,7 @@ end
 
 -- Create buttons
 local buttons = {}
-for i = 1, 3 do
+for i = 1, 5 do
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 28)
 	btn.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
