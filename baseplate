@@ -22,7 +22,6 @@ if _G.InfiniteBaseplatesActive then
             part:Destroy()
         end
     end
-
     return
 end
 
@@ -37,32 +36,17 @@ local baseplateGrid = {}
 local selectedColor = Color3.fromRGB(34, 139, 34)  -- Forest Green
 
 -- Spawn position
-local spawnPosition = Vector3.new(4, -3, -481)
+local spawnPos = Vector3.new(4, -3, -481)
 
--- Exclusion zone corners
-local exclusionCorners = {
-    Vector3.new(-467, 3, -957),
-    Vector3.new(-468, 3, -7),
-    Vector3.new(483, 3, -7),
-    Vector3.new(483, 3, -957),
-}
-
--- Function to check if a position is inside the exclusion rectangle
-local function isInsideExclusion(pos)
-    local minX = math.min(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
-    local maxX = math.max(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
-    local minZ = math.min(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
-    local maxZ = math.max(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
-
-    return pos.X >= minX and pos.X <= maxX and pos.Z >= minZ and pos.Z <= maxZ
-end
+-- Exclusion zone (inside these corners)
+local minX, minZ = -468, -957
+local maxX, maxZ = 483, -7
 
 -- Function to get Y position for baseplate
 local function getBaseplateYPosition()
     local character = Player.Character
     if character and character:FindFirstChild("HumanoidRootPart") then
-        local humanoidRootPart = character.HumanoidRootPart
-        local rayOrigin = humanoidRootPart.Position
+        local rayOrigin = character.HumanoidRootPart.Position
         local rayDirection = Vector3.new(0, -1000, 0)
         local raycastParams = RaycastParams.new()
         raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
@@ -71,91 +55,132 @@ local function getBaseplateYPosition()
         if raycastResult then
             return raycastResult.Position.Y - (baseplateThickness / 2) + 0.001
         else
-            return spawnPosition.Y
+            return spawnPos.Y
         end
     end
-    return spawnPosition.Y
+    return spawnPos.Y
 end
 
--- Function to create a baseplate
-local function addGrassBaseplate(position, allowHole)
+-- Function to add a baseplate but cut out exclusion if needed
+local function addGrassBaseplateWithHole(position)
     local key = tostring(position.X) .. "," .. tostring(position.Z)
     if baseplateGrid[key] then return end
 
-    -- Skip if inside exclusion zone unless it's the spawn baseplate
-    if isInsideExclusion(position) and position ~= spawnPosition and not allowHole then
-        return
+    local baseplateY = getBaseplateYPosition()
+
+    -- Calculate bounds of this baseplate
+    local halfSize = baseplateSize / 2
+    local leftX = position.X - halfSize
+    local rightX = position.X + halfSize
+    local frontZ = position.Z - halfSize
+    local backZ = position.Z + halfSize
+
+    -- If the baseplate intersects exclusion, split it into up to 4 parts
+    local overlapX1 = math.max(leftX, minX)
+    local overlapX2 = math.min(rightX, maxX)
+    local overlapZ1 = math.max(frontZ, minZ)
+    local overlapZ2 = math.min(backZ, maxZ)
+
+    if leftX < maxX and rightX > minX and frontZ < maxZ and backZ > minZ then
+        -- left part
+        if leftX < minX then
+            local part = Instance.new("Part")
+            part.Name = "GrassBaseplate"
+            part.Anchored = true
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = selectedColor
+            part.Size = Vector3.new(minX - leftX, baseplateThickness, baseplateSize)
+            part.Position = Vector3.new(leftX + (part.Size.X/2), baseplateY, position.Z)
+            part.Transparency = 0.5
+            part.CanCollide = true
+            part.Parent = baseplateFolder
+        end
+        -- right part
+        if rightX > maxX then
+            local part = Instance.new("Part")
+            part.Name = "GrassBaseplate"
+            part.Anchored = true
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = selectedColor
+            part.Size = Vector3.new(rightX - maxX, baseplateThickness, baseplateSize)
+            part.Position = Vector3.new(maxX + (part.Size.X/2), baseplateY, position.Z)
+            part.Transparency = 0.5
+            part.CanCollide = true
+            part.Parent = baseplateFolder
+        end
+        -- front part
+        if frontZ < minZ then
+            local part = Instance.new("Part")
+            part.Name = "GrassBaseplate"
+            part.Anchored = true
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = selectedColor
+            part.Size = Vector3.new(math.min(baseplateSize, rightX-leftX), baseplateThickness, minZ - frontZ)
+            part.Position = Vector3.new(position.X, baseplateY, frontZ + (part.Size.Z/2))
+            part.Transparency = 0.5
+            part.CanCollide = true
+            part.Parent = baseplateFolder
+        end
+        -- back part
+        if backZ > maxZ then
+            local part = Instance.new("Part")
+            part.Name = "GrassBaseplate"
+            part.Anchored = true
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = selectedColor
+            part.Size = Vector3.new(math.min(baseplateSize, rightX-leftX), baseplateThickness, backZ - maxZ)
+            part.Position = Vector3.new(position.X, baseplateY, maxZ + (part.Size.Z/2))
+            part.Transparency = 0.5
+            part.CanCollide = true
+            part.Parent = baseplateFolder
+        end
+    else
+        -- No overlap with exclusion, normal baseplate
+        local grassBaseplate = Instance.new("Part")
+        grassBaseplate.Name = "GrassBaseplate"
+        grassBaseplate.Size = Vector3.new(baseplateSize, baseplateThickness, baseplateSize)
+        grassBaseplate.Anchored = true
+        grassBaseplate.Material = Enum.Material.SmoothPlastic
+        grassBaseplate.Color = selectedColor
+        grassBaseplate.Position = position
+        grassBaseplate.Transparency = 0.5
+        grassBaseplate.CanCollide = true
+        grassBaseplate.Parent = baseplateFolder
     end
 
-    local grassBaseplate = Instance.new("Part")
-    grassBaseplate.Name = "GrassBaseplate"
-    grassBaseplate.Size = Vector3.new(baseplateSize, baseplateThickness, baseplateSize)
-    grassBaseplate.Anchored = true
-    grassBaseplate.Material = Enum.Material.SmoothPlastic
-    grassBaseplate.Color = selectedColor
-    grassBaseplate.Position = position
-    grassBaseplate.Transparency = 0.5
-    grassBaseplate.CanCollide = true
-    grassBaseplate.Parent = baseplateFolder
-
-    -- If this is the center plate, create a hole in the exclusion zone
-    if allowHole then
-        local minX = math.min(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
-        local maxX = math.max(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
-        local minZ = math.min(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
-        local maxZ = math.max(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
-
-        local hole = Instance.new("Part")
-        hole.Name = "ExclusionHole"
-        hole.Size = Vector3.new(maxX - minX, baseplateThickness + 0.1, maxZ - minZ)
-        hole.Anchored = true
-        hole.Position = Vector3.new((minX + maxX)/2, position.Y + 0.01, (minZ + maxZ)/2)
-        hole.Transparency = 1
-        hole.CanCollide = false
-        hole.Parent = grassBaseplate
-    end
-
-    baseplateGrid[key] = grassBaseplate
+    baseplateGrid[key] = true
 end
 
--- Function to create baseplates in a square grid around spawn
+-- Function to create baseplates in a square grid around the spawn
 local function createBaseplatesGrid()
-    local gridRadius = 4  -- 9x9 grid
+    local center = spawnPos
     local sizeMultiplier = baseplateSize + baseplateSpacing
-    local baseplateY = getBaseplateYPosition()
+    local gridRadius = 4  -- 9x9 grid
 
     for x = -gridRadius, gridRadius do
         for z = -gridRadius, gridRadius do
-            local platePos = Vector3.new(
-                spawnPosition.X + (x * sizeMultiplier),
-                baseplateY,
-                spawnPosition.Z + (z * sizeMultiplier)
-            )
-            -- Only the exact center can have a hole
-            local allowHole = (x == 0 and z == 0)
-            addGrassBaseplate(platePos, allowHole)
+            local posX = center.X + (x * sizeMultiplier)
+            local posZ = center.Z + (z * sizeMultiplier)
+            addGrassBaseplateWithHole(Vector3.new(posX, center.Y, posZ))
         end
     end
 end
 
--- Main loop to generate baseplates
-spawn(function()
-    -- Clear old baseplates if any
-    for _, part in ipairs(baseplateFolder:GetChildren()) do
-        if part.Name == "GrassBaseplate" then
-            part:Destroy()
-        end
+-- Clear old baseplates if any
+for _, part in ipairs(baseplateFolder:GetChildren()) do
+    if part.Name == "GrassBaseplate" then
+        part:Destroy()
     end
-    baseplateGrid = {}
+end
+baseplateGrid = {}
 
-    -- Create initial baseplates
-    createBaseplatesGrid()
+-- Create initial baseplates
+createBaseplatesGrid()
 
-    -- Continuously update baseplates
-    spawn(function()
-        while _G.InfiniteBaseplatesActive do
-            wait(1)
-            createBaseplatesGrid()
-        end
-    end)
+-- Continuously update baseplates around spawn (optional)
+spawn(function()
+    while _G.InfiniteBaseplatesActive do
+        wait(1)
+        createBaseplatesGrid()
+    end
 end)
