@@ -36,12 +36,29 @@ local baseplateThickness = 4
 local baseplateGrid = {}
 local selectedColor = Color3.fromRGB(34, 139, 34)  -- Forest Green
 
--- Variables for freezing/restoring avatar
-local frozen = false
-local originalAnchoredStates = {}
+-- Spawn position
+local spawnPosition = Vector3.new(4, -3, -481)
+
+-- Exclusion zone corners
+local exclusionCorners = {
+    Vector3.new(-467, 3, -957),
+    Vector3.new(-468, 3, -7),
+    Vector3.new(483, 3, -7),
+    Vector3.new(483, 3, -957),
+}
+
+-- Function to check if a position is inside the exclusion rectangle
+local function isInsideExclusion(pos)
+    local minX = math.min(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
+    local maxX = math.max(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
+    local minZ = math.min(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
+    local maxZ = math.max(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
+
+    return pos.X >= minX and pos.X <= maxX and pos.Z >= minZ and pos.Z <= maxZ
+end
 
 -- Function to get Y position for baseplate
-local function getBaseplateYPosition(playerPosition)
+local function getBaseplateYPosition()
     local character = Player.Character
     if character and character:FindFirstChild("HumanoidRootPart") then
         local humanoidRootPart = character.HumanoidRootPart
@@ -54,16 +71,21 @@ local function getBaseplateYPosition(playerPosition)
         if raycastResult then
             return raycastResult.Position.Y - (baseplateThickness / 2) + 0.001
         else
-            return playerPosition.Y - 20
+            return spawnPosition.Y
         end
     end
-    return 0
+    return spawnPosition.Y
 end
 
 -- Function to create a baseplate
-local function addGrassBaseplate(position)
+local function addGrassBaseplate(position, allowHole)
     local key = tostring(position.X) .. "," .. tostring(position.Z)
     if baseplateGrid[key] then return end
+
+    -- Skip if inside exclusion zone unless it's the spawn baseplate
+    if isInsideExclusion(position) and position ~= spawnPosition and not allowHole then
+        return
+    end
 
     local grassBaseplate = Instance.new("Part")
     grassBaseplate.Name = "GrassBaseplate"
@@ -75,55 +97,49 @@ local function addGrassBaseplate(position)
     grassBaseplate.Transparency = 0.5
     grassBaseplate.CanCollide = true
     grassBaseplate.Parent = baseplateFolder
-    
+
+    -- If this is the center plate, create a hole in the exclusion zone
+    if allowHole then
+        local minX = math.min(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
+        local maxX = math.max(exclusionCorners[1].X, exclusionCorners[2].X, exclusionCorners[3].X, exclusionCorners[4].X)
+        local minZ = math.min(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
+        local maxZ = math.max(exclusionCorners[1].Z, exclusionCorners[2].Z, exclusionCorners[3].Z, exclusionCorners[4].Z)
+
+        local hole = Instance.new("Part")
+        hole.Name = "ExclusionHole"
+        hole.Size = Vector3.new(maxX - minX, baseplateThickness + 0.1, maxZ - minZ)
+        hole.Anchored = true
+        hole.Position = Vector3.new((minX + maxX)/2, position.Y + 0.01, (minZ + maxZ)/2)
+        hole.Transparency = 1
+        hole.CanCollide = false
+        hole.Parent = grassBaseplate
+    end
+
     baseplateGrid[key] = grassBaseplate
 end
 
--- Function to create baseplates around the player
-local function createBaseplatesAroundPlayer()
-    local character = Player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local playerPosition = character.HumanoidRootPart.Position
+-- Function to create baseplates in a square grid around spawn
+local function createBaseplatesGrid()
+    local gridRadius = 4  -- 9x9 grid
     local sizeMultiplier = baseplateSize + baseplateSpacing
-    local baseplateY = getBaseplateYPosition(playerPosition)
-    
-    for x = -1, 1 do
-        for z = -1, 1 do
-            local gridX = math.floor(playerPosition.X / sizeMultiplier) * sizeMultiplier + (x * sizeMultiplier)
-            local gridZ = math.floor(playerPosition.Z / sizeMultiplier) * sizeMultiplier + (z * sizeMultiplier)
-            addGrassBaseplate(Vector3.new(gridX, baseplateY, gridZ))
-        end
-    end
-end
+    local baseplateY = getBaseplateYPosition()
 
--- Freeze/unfreeze functions
-local function freezeAvatar()
-    local character = Player.Character
-    if character then
-        originalAnchoredStates = {}
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                table.insert(originalAnchoredStates, {part = part, wasAnchored = part.Anchored})
-                part.Anchored = true
-            end
-        end
-        frozen = true
-    end
-end
-
-local function unfreezeAvatar()
-    for _, info in ipairs(originalAnchoredStates) do
-        if info.part and info.part.Parent then
-            info.part.Anchored = info.wasAnchored
+    for x = -gridRadius, gridRadius do
+        for z = -gridRadius, gridRadius do
+            local platePos = Vector3.new(
+                spawnPosition.X + (x * sizeMultiplier),
+                baseplateY,
+                spawnPosition.Z + (z * sizeMultiplier)
+            )
+            -- Only the exact center can have a hole
+            local allowHole = (x == 0 and z == 0)
+            addGrassBaseplate(platePos, allowHole)
         end
     end
-    frozen = false
 end
 
 -- Main loop to generate baseplates
 spawn(function()
-    freezeAvatar()
-
     -- Clear old baseplates if any
     for _, part in ipairs(baseplateFolder:GetChildren()) do
         if part.Name == "GrassBaseplate" then
@@ -133,16 +149,13 @@ spawn(function()
     baseplateGrid = {}
 
     -- Create initial baseplates
-    createBaseplatesAroundPlayer()
-    
+    createBaseplatesGrid()
+
     -- Continuously update baseplates
     spawn(function()
         while _G.InfiniteBaseplatesActive do
             wait(1)
-            createBaseplatesAroundPlayer()
+            createBaseplatesGrid()
         end
     end)
-    
-    wait(1)
-    unfreezeAvatar()
 end)
