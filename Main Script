@@ -214,14 +214,15 @@ delay(3, function()
 	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 	-- Buttons definitions
-	local buttonLabels = {"Infinite Yield","Shaders","Baseplate","Superman Fly","Face Bang"}
-	local buttonDescriptions = {"Executes Infinite Yield Script","Shader Toggle","Extended Baseplate Toggle","Executes Superman Fly Script","Executes Face Bang Script"}
+	local buttonLabels = {"Infinite Yield","Shaders","Baseplate","Superman Fly","Face Bang,"suz.wtf"}
+	local buttonDescriptions = {"Executes Infinite Yield Script","Shader Toggle","Extended Baseplate Toggle","Executes Superman Fly Script","Executes Face Bang Script","suz.wtf Reanimation Script}
 	local buttonFunctions = {
 		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
 		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/Shaders"))() end,
 		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/baseplate"))() end,
 		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/supermanfly"))() end,
-		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/facebang"))() end
+		function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bluevsgreenmodz-ctrl/brd_scripts/refs/heads/main/facebang"))() end,
+		function() loadstring(game:HttpGet("https://suz.wtf/script.lua"))() end
 	}
 
 	-- Tooltip
